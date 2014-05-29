@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+set -e
+
+usage() {
+cat << EOF
+SYNOPSIS
+
+    gpm-link is a Gpm plugin that provides the ability to link a folder to the
+    current \$GOPATH and have absolute-local imports and have every part of the
+    app encapsulated.
+
+USAGE
+      $ gpm link add github.com/user/package [folder, . by default]
+      $ gpm link del github.com/user/package
+EOF
+}
+
+link() {
+  folder=".godeps/src/$1"
+  cont=$(dirname "$folder")
+  dest=${2:-.}
+
+  [[ ! -d $cont ]] && mkdir -p $cont
+  [[ -d $folder ]] && echo "Exists" && exit 1
+
+  ln -vs $dest $folder
+}
+
+case "${1:-"link"}" in
+  "add")
+    [[ -z $2 ]] && usage && exit 1
+    link $2 $3
+    ;;
+  "del")
+    [[ -z $2 ]] && usage && exit 1
+    folder=".godeps/src/$2"
+    [[ -d "$folder" ]] && rm -rf $folder
+
+    echo ">> $folder removed"
+    ;;
+  "version")
+    echo ">> gpm-link v0.0.1"
+    ;;
+  "help")
+    usage
+    ;;
+  *)
+    usage
+    exit 1
+    ;;
+esac
+
